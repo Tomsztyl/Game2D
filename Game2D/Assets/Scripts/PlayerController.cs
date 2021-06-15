@@ -6,24 +6,30 @@ public class PlayerController : MonoBehaviour
 {
     private InputActionPlayer _inputActions = null;
 
-    Locomotion locomotion = null;
+    LocomotionInput locomotionInput = null;
 
     private void Awake()
     {
         _inputActions = new InputActionPlayer();
 
-
         #region Locomotion Object System
         //get locomtoion object
-        locomotion = new Locomotion();
+        locomotionInput = new LocomotionInput();
         //execiute method LocomotionPlayer who Get value Vector2 from input system
-        locomotion.LocomotionPlayer(_inputActions);
+        locomotionInput.LocomotionPlayer(_inputActions);
         #endregion
+
     }
-    private void Update()
+    private void FixedUpdate()
     {
-        if (locomotion != null)
-            Debug.Log(locomotion.LocomotionVector());
+        if (locomotionInput != null)
+        {
+            LocomotionRunning locomotionRunning = new LocomotionRunning(locomotionInput.LocomotionVector(),10f);
+            locomotionRunning.LocomotionRotateMechanism(this.gameObject.transform);
+            locomotionRunning.LocomotionRunningAnimation(GetComponent<Animator>(), "Runing");
+            locomotionRunning.LocomotionRunningMechanism(this.gameObject.transform);
+        }
+            //Debug.Log(locomotionInput.LocomotionVector());
     }
 
     #region Switch Input System
@@ -39,8 +45,11 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Locomotion System
-    class Locomotion
+    #region Locomotion System Input
+    /// <summary>
+    /// Class Who Get Value From System Input
+    /// </summary>
+    class LocomotionInput
     {
         private Vector2 locomotion;     //locomotion speed get from input system
 
@@ -75,4 +84,85 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    #region Locomotion Character
+    /// <summary>
+    /// Class Who Have Mechanism Running
+    /// </summary>
+    class LocomotionRunning
+    {
+        private Vector2 locomotion;         //define locomotion from input system for the character
+        private float speedRuning;          //define speed character running declarate from constructor
+
+        /// <summary>
+        /// Constructor who assigns properties to Mechanism Running Character
+        /// </summary>
+        /// <param name="locomotion">Locomotion from input system</param>
+        /// <param name="speedRuning">Set speed character running</param>
+        public LocomotionRunning(Vector2 locomotion, float speedRuning)
+        {
+            //assigns variable LocomotionRunning class
+            this.locomotion = locomotion;
+            this.speedRuning = speedRuning;
+        }
+        /// <summary>
+        /// Method Trnaslate Character
+        /// </summary>
+        /// <param name="transformObject">Transform character to Translate</param>
+        public void LocomotionRunningMechanism(Transform transformObject)
+        {
+            //calculate and set translate character
+            float translation = locomotion.x * speedRuning * Time.deltaTime;
+            transformObject.transform.Translate(translation, 0, 0);
+        }
+        /// <summary>
+        /// Method Switch Animation Character
+        /// </summary>
+        /// <param name="animator">Component Animator to Controll and switch animation</param>
+        /// <param name="textParameter">Name paramets to change</param>
+        public void LocomotionRunningAnimation(Animator animator, string textParameter)
+        {
+            //calculate speed character
+            var locomotionCalculate = locomotion.x;
+            if (locomotion.x<0)
+            {
+                locomotionCalculate *= -1;
+            }   
+            //swtich value variable to speed character
+            animator.SetFloat(textParameter, locomotionCalculate);
+        }
+        /// <summary>
+        /// Mathod Rotate Character To Move
+        /// </summary>
+        /// <param name="transformObject">Transoform object to rotate character to corrcet direction</param>
+        public void LocomotionRotateMechanism(Transform transformObject)
+        {
+            if (locomotion.x<0)
+            {
+                //switch direction character to left
+                speedRuning *= -1;
+                transformObject.eulerAngles = new Vector2(transformObject.eulerAngles.x, -180);
+            }
+            else if (locomotion.x>0)
+            {
+                //switch direction character to right
+                speedRuning *= 1;
+                transformObject.eulerAngles = new Vector2(transformObject.eulerAngles.x, 0);
+            }
+        }
+    }
+    /// <summary>
+    /// Class Who Define Mechanism Jumping Up
+    /// </summary>
+    class LocomotionJumpingUp
+    {
+        //float translationjump = locomotion.y * 10f * Time.deltaTime;
+    }
+    /// <summary>
+    /// Class Who Define Mechanism Jumping Down
+    /// </summary>
+    class LocomotionJumpingDown
+    {
+
+    }
+    #endregion
 }

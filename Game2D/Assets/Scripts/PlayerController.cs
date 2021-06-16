@@ -1,35 +1,82 @@
-﻿using System.Collections;
+﻿using Locomotion;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private InputActionPlayer _inputActions = null;
+    [Header("Properties Locomotion Character")]
+    [Tooltip("Running locomotion character")]
+    [SerializeField]private float locomotionRunningSpeed = 10f;
+    [Tooltip("Jumping power character")]
+    [SerializeField] private float locomotionJumpingPower = 1000f; 
 
-    LocomotionInput locomotionInput = null;
+    [Header("Variable Check Ground")]
+    [Tooltip("LayerMaks Ground raycast check if ray hit object with layer mask")]
+    [SerializeField]private LayerMask layerMaskGround;
+    [Tooltip("Distance from the ground")]
+    [SerializeField]private float distanceGround = .41f;
+
+    InputActionPlayer _inputActions = null;                                      //input system player
+    Locomotion2D _locomotion2D = null;                                           //using locomotion2D with mechanisms character:[running][jumpingUp][jumpingDown]
+    LocomotionInput _locomotionInput = null;                                     //input system player get locomotion
+
+    Rigidbody2D rigidbody2DCharacter = null;                                     //component rigidbody in character        
+    Animator animatorCharacter = null;                                           //component animator in character
+
 
     private void Awake()
     {
-        _inputActions = new InputActionPlayer();
-
         #region Locomotion Object System
+        //input system locomotion
+        _inputActions = new InputActionPlayer();
         //get locomtoion object
-        locomotionInput = new LocomotionInput();
+        _locomotionInput = new LocomotionInput();
+        //locomotion using with mechanisms 2d
+        _locomotion2D = new Locomotion2D();
         //execiute method LocomotionPlayer who Get value Vector2 from input system
-        locomotionInput.LocomotionPlayer(_inputActions);
+        _locomotionInput.LocomotionPlayer(_inputActions);
         #endregion
-
     }
+
+    private void Start()
+    {
+        rigidbody2DCharacter = GetComponent<Rigidbody2D>();
+        animatorCharacter = GetComponent<Animator>();
+    }
+
     private void FixedUpdate()
     {
-        if (locomotionInput != null)
+        if (_locomotionInput != null)
         {
-            LocomotionRunning locomotionRunning = new LocomotionRunning(locomotionInput.LocomotionVector(),10f);
-            locomotionRunning.LocomotionRotateMechanism(this.gameObject.transform);
-            locomotionRunning.LocomotionRunningAnimation(GetComponent<Animator>(), "Runing");
-            locomotionRunning.LocomotionRunningMechanism(this.gameObject.transform);
+            LocomotionCharacterRunning();
+            LocomotionCharacterJumpingUp();
         }
-            //Debug.Log(locomotionInput.LocomotionVector());
+    }
+    private void LocomotionCharacterRunning()
+    {
+        LocomotionRunning locomotionRunning = new LocomotionRunning(_locomotionInput.LocomotionVector(), locomotionRunningSpeed);
+        locomotionRunning.LocomotionRotateMechanism(this.gameObject.transform);
+        locomotionRunning.LocomotionRunningAnimation(animatorCharacter, "Runing");
+        locomotionRunning.LocomotionRunningMechanism(this.gameObject.transform);
+    }
+    private void LocomotionCharacterJumpingUp()
+    {
+        if (_locomotion2D.IsGrounded(this.gameObject.transform, layerMaskGround, distanceGround))
+        {
+            LocomotionJumpingUp locomotionJumpingUp = new LocomotionJumpingUp(_locomotionInput.LocomotionVector(), locomotionJumpingPower);
+            locomotionJumpingUp.LocomotionJumpingUpAnimation(animatorCharacter, "isJumpUp", _locomotion2D.IsGrounded(this.gameObject.transform, layerMaskGround, distanceGround));
+            if (animatorCharacter.GetBool("isBeforeJumpingUp"))
+            {
+                locomotionJumpingUp.LocomotionJumpingUpMechanism(this.gameObject.transform, rigidbody2DCharacter);
+                animatorCharacter.SetBool("isBeforeJumpingUp", false);
+            }
+
+        }
+    }
+    private void LocomotionCharacterJumpingDown()
+    {
+
     }
 
     #region Switch Input System
@@ -45,124 +92,4 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Locomotion System Input
-    /// <summary>
-    /// Class Who Get Value From System Input
-    /// </summary>
-    class LocomotionInput
-    {
-        private Vector2 locomotion;     //locomotion speed get from input system
-
-        /// <summary>
-        /// Get From Input System Speed Vector2d
-        /// </summary>
-        /// <param name="inputActions">Input System Define Action Vector2D</param>
-        public void LocomotionPlayer(InputActionPlayer inputActions)
-        {
-            if (inputActions != null)
-            {
-                //is Input System
-
-                //set locomotion value Vector2 is it calculated
-                inputActions.PlayerLocomotion.Move.performed += cntxt => locomotion = cntxt.ReadValue<Vector2>();
-                //set locomotion value Vector2 if interaction is canceled set default value Vector2 zero
-                inputActions.PlayerLocomotion.Move.canceled += cntxt => locomotion = Vector2.zero;
-            }
-            else
-                //no define input system Debug [Error]
-                Debug.LogError("Input System Locomotion is not define");
-        }
-        /// <summary>
-        /// Get Vector Locomtoion From Input system
-        /// </summary>
-        /// <returns>Vector2 Calculate Input System</returns>
-        public Vector2 LocomotionVector()
-        {
-            //get locomotion speed Vector from Input system
-            return locomotion;
-        }
-    }
-    #endregion
-
-    #region Locomotion Character
-    /// <summary>
-    /// Class Who Have Mechanism Running
-    /// </summary>
-    class LocomotionRunning
-    {
-        private Vector2 locomotion;         //define locomotion from input system for the character
-        private float speedRuning;          //define speed character running declarate from constructor
-
-        /// <summary>
-        /// Constructor who assigns properties to Mechanism Running Character
-        /// </summary>
-        /// <param name="locomotion">Locomotion from input system</param>
-        /// <param name="speedRuning">Set speed character running</param>
-        public LocomotionRunning(Vector2 locomotion, float speedRuning)
-        {
-            //assigns variable LocomotionRunning class
-            this.locomotion = locomotion;
-            this.speedRuning = speedRuning;
-        }
-        /// <summary>
-        /// Method Trnaslate Character
-        /// </summary>
-        /// <param name="transformObject">Transform character to Translate</param>
-        public void LocomotionRunningMechanism(Transform transformObject)
-        {
-            //calculate and set translate character
-            float translation = locomotion.x * speedRuning * Time.deltaTime;
-            transformObject.transform.Translate(translation, 0, 0);
-        }
-        /// <summary>
-        /// Method Switch Animation Character
-        /// </summary>
-        /// <param name="animator">Component Animator to Controll and switch animation</param>
-        /// <param name="textParameter">Name paramets to change</param>
-        public void LocomotionRunningAnimation(Animator animator, string textParameter)
-        {
-            //calculate speed character
-            var locomotionCalculate = locomotion.x;
-            if (locomotion.x<0)
-            {
-                locomotionCalculate *= -1;
-            }   
-            //swtich value variable to speed character
-            animator.SetFloat(textParameter, locomotionCalculate);
-        }
-        /// <summary>
-        /// Mathod Rotate Character To Move
-        /// </summary>
-        /// <param name="transformObject">Transoform object to rotate character to corrcet direction</param>
-        public void LocomotionRotateMechanism(Transform transformObject)
-        {
-            if (locomotion.x<0)
-            {
-                //switch direction character to left
-                speedRuning *= -1;
-                transformObject.eulerAngles = new Vector2(transformObject.eulerAngles.x, -180);
-            }
-            else if (locomotion.x>0)
-            {
-                //switch direction character to right
-                speedRuning *= 1;
-                transformObject.eulerAngles = new Vector2(transformObject.eulerAngles.x, 0);
-            }
-        }
-    }
-    /// <summary>
-    /// Class Who Define Mechanism Jumping Up
-    /// </summary>
-    class LocomotionJumpingUp
-    {
-        //float translationjump = locomotion.y * 10f * Time.deltaTime;
-    }
-    /// <summary>
-    /// Class Who Define Mechanism Jumping Down
-    /// </summary>
-    class LocomotionJumpingDown
-    {
-
-    }
-    #endregion
 }

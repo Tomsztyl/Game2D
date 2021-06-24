@@ -6,6 +6,13 @@ namespace Locomotion
 {
     public class Locomotion2D
     {
+        /// <summary>
+        /// Method Check if character is grounded through mechanism RayCastHit2D and draw Gizmos Line
+        /// </summary>
+        /// <param name="feetGroundCharacter">Transform character where raycast hit down</param>
+        /// <param name="layerGround">Layer where raycast separe hit</param>
+        /// <param name="feetGroundLenght">Lenght raycast </param>
+        /// <returns>Variable bool [true=is grounded] || [false=is not grounded] </returns>
         public bool IsGrounded(Transform feetGroundCharacter,LayerMask layerGround,float feetGroundLenght)
         {
             // Cast a ray straight down.
@@ -21,6 +28,26 @@ namespace Locomotion
                 Debug.DrawRay(feetGroundCharacter.position, -Vector2.up * hit.distance, Color.green);
                 return false;
             }           
+        }
+        /// <summary>
+        /// Method who check if character falling down
+        /// </summary>
+        /// <param name="rigidbody2D">Rigidbody 2D character</param>
+        /// <param name="fallingThreshold">Calculate distance falling treshold</param>
+        /// <returns>Variable bool [true=is falling] [false=is not falling]</returns>
+        public bool IsJumpingDown(Rigidbody2D rigidbody2D, float fallingThreshold)
+        {
+            //checking falling treshold character
+            if (rigidbody2D.velocity.y < fallingThreshold)
+            {
+                //is falling
+                return true;
+            }
+            else
+            {
+                //is not falling
+                return false;
+            }
         }
     }
 
@@ -173,7 +200,25 @@ namespace Locomotion
     /// </summary>
     public class LocomotionJumpingDown
     {
-
+        /// <summary>
+        /// Method who Set Animation Jumping Down / Falling Character
+        /// </summary>
+        /// <param name="animator">Component Animator Character to change variable parameter</param>
+        /// <param name="textParameter">String name varible in Animator (Parameter)</param>
+        /// <param name="isFalling">Vairable To define is character falling or not</param>
+        public void LocomotionJumpingDownAnimation(Animator animator,string textParameter,bool isFalling)
+        {
+            if (isFalling)
+            {
+                //character falling 
+                animator.SetBool(textParameter, isFalling);
+            }
+            else
+            {
+                //character not falling
+                animator.SetBool(textParameter, isFalling);
+            }
+        }
     }
     #endregion
 }

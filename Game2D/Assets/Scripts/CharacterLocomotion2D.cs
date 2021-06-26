@@ -161,14 +161,24 @@ namespace Locomotion
     /// </summary>
     public class LocomotionJumpingUp
     {
-        private Vector2 locomotion;
-        private float jumpPower;
+        private Vector2 locomotion;             //define locomotion from input system for the character
+        private float jumpPower;                //define jump power character
 
+        /// <summary>
+        /// Constructor to assign locomotopn properties
+        /// </summary>
+        /// <param name="locomotion">Locomotion character</param>
+        /// <param name="jumpPower">Jump power character</param>
         public LocomotionJumpingUp(Vector2 locomotion, float jumpPower)
         {
             this.locomotion = locomotion;
             this.jumpPower = jumpPower;
         }
+        /// <summary>
+        /// Method mechanism jump character
+        /// </summary>
+        /// <param name="transformObject">Character transform to Move</param>
+        /// <param name="rigidbody2D">Rigidbody 2D Character to add force</param>
         public void LocomotionJumpingUpMechanism(Transform transformObject, Rigidbody2D rigidbody2D)
         {
             //calculate and jumping power character
@@ -178,6 +188,12 @@ namespace Locomotion
                 rigidbody2D.AddForce(transformObject.up * jumpingPower);
             }
         }
+        /// <summary>
+        /// Method mechanism jumping animation 
+        /// </summary>
+        /// <param name="animator">Component Animator Character to change variable parameter</param>
+        /// <param name="textParameter">String name varible in Animator (Parameter)</param>
+        /// <param name="isGround">Variable Check is Grounded character</param>
         public void LocomotionJumpingUpAnimation(Animator animator,string textParameter,bool isGround)
         {
             if (isGround && !animator.GetBool(textParameter))

@@ -137,13 +137,24 @@
                     "id": "3e71752b-c2b1-4caa-a260-bf163251555e",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
                 {
                     "name": "",
                     "id": "2226f525-31a5-4ac0-9ba8-991098f967fa",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3dc1eb00-8ef3-48b8-a657-cac980142702",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
